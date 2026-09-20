@@ -23,3 +23,5 @@ services:
 
 volumes:
   finally-data:
+    # Fixed name (no compose-project prefix) so this and scripts/start_*.sh|ps1 share one database.
+    name: finally-data
