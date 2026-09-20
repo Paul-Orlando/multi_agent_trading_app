@@ -59,7 +59,7 @@ export function PnLChart({ snapshots, loading, error, startingCash }: PnLChartPr
       right={<span className={`num text-xs ${signClass(pnl)}`}>{fmtSignedUsd(pnl)}</span>}
       bodyClassName="relative"
     >
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className="absolute inset-0" data-testid="pnl-chart" />
       {(loading || !snapshots?.length) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-muted">
           {loading ? "Loading history…" : error ?? "No history yet — snapshots are recorded every 30s"}

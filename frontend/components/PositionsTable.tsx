@@ -28,7 +28,7 @@ export function PositionsTable({ portfolio, loading, error, selected, onSelect }
       ) : !positions.length ? (
         <PanelMessage>No open positions.</PanelMessage>
       ) : (
-        <table className="w-full">
+        <table className="w-full" data-testid="positions-table">
           <thead className="sticky top-0 bg-panel text-[10px] uppercase tracking-wider text-muted">
             <tr>
               <th className="px-3 py-1.5 text-left font-medium">Ticker</th>
@@ -43,6 +43,7 @@ export function PositionsTable({ portfolio, loading, error, selected, onSelect }
             {positions.map((p) => (
               <tr
                 key={p.ticker}
+                data-testid={`position-row-${p.ticker}`}
                 onClick={() => onSelect(p.ticker)}
                 className={`cursor-pointer border-b border-line/40 hover:bg-raised ${p.ticker === selected ? "bg-raised" : ""}`}
               >

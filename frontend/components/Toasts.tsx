@@ -13,6 +13,7 @@ export function Toasts({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (id:
       {toasts.map((t) => (
         <button
           key={t.id}
+          data-testid="toast"
           onClick={() => onDismiss(t.id)}
           className={`pointer-events-auto rounded-md border px-3 py-2 text-left shadow-lg backdrop-blur ${STYLES[t.kind]}`}
           style={{ backgroundColor: "#161b22ee" }}

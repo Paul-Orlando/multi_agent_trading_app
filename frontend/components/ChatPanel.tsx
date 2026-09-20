@@ -112,6 +112,8 @@ function Message({ message: m }: { message: ChatMessage }) {
   return (
     <div className={`flex flex-col gap-1.5 ${isUser ? "items-end" : "items-start"}`}>
       <div
+        data-testid="chat-message"
+        data-role={m.role}
         className={`max-w-[92%] whitespace-pre-wrap rounded-lg px-3 py-2 ${
           isUser ? "bg-primary/20 text-white" : m.isError ? "border border-down/50 bg-down/10 text-down" : "bg-raised"
         }`}
@@ -121,6 +123,7 @@ function Message({ message: m }: { message: ChatMessage }) {
 
       {trades.map((t, i) => (
         <div
+          data-testid="chat-action"
           key={`t${i}`}
           className={`num rounded border px-2 py-1 text-[11px] ${t.ok ? "border-up/40 text-up" : "border-down/40 text-down"}`}
         >
@@ -131,6 +134,7 @@ function Message({ message: m }: { message: ChatMessage }) {
       ))}
       {changes.map((c, i) => (
         <div
+          data-testid="chat-action"
           key={`w${i}`}
           className={`rounded border px-2 py-1 text-[11px] ${c.ok ? "border-primary/40 text-primary" : "border-down/40 text-down"}`}
         >

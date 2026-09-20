@@ -33,7 +33,7 @@ interface CellProps {
 function HeatCell({ x = 0, y = 0, width = 0, height = 0, name, pnl = 0, depth }: CellProps) {
   if (depth === 0) return null; // the treemap's invisible root
   return (
-    <g>
+    <g data-testid={`heatmap-cell-${name}`} data-pnl={pnl}>
       <rect x={x} y={y} width={width} height={height} fill={pnlColor(pnl)} stroke="#0d1117" strokeWidth={2} rx={3} />
       {width > 46 && height > 34 && (
         <>
@@ -62,7 +62,7 @@ export function PortfolioHeatmap({ portfolio, loading }: { portfolio: Portfolio 
       ) : !data.length ? (
         <PanelMessage>No positions yet. Place a trade to see your portfolio here.</PanelMessage>
       ) : (
-        <div className="absolute inset-0 p-1">
+        <div className="absolute inset-0 p-1" data-testid="heatmap">
           <ResponsiveContainer width="100%" height="100%">
             <Treemap data={data} dataKey="size" isAnimationActive={false} content={<HeatCell />} />
           </ResponsiveContainer>

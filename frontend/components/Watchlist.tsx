@@ -119,13 +119,14 @@ const WatchRow = memo(function WatchRow({ entry, tick, points, openPrice, select
 
   return (
     <tr
+      data-testid={`watch-row-${entry.ticker}`}
       onClick={() => onSelect(entry.ticker)}
       className={`cursor-pointer border-b border-line/40 hover:bg-raised ${selected ? "bg-raised shadow-[inset_2px_0_0_#ecad0a]" : ""}`}
     >
       <td className="px-3 py-1.5 font-semibold text-white">{entry.ticker}</td>
       {/* Keyed span: the key changes on each flash so the 500ms animation restarts every tick. */}
       <td className="px-2 py-1.5 text-right">
-        <span key={flashKey} className={`num inline-block rounded px-1 ${flash}`}>
+        <span data-testid={`watch-price-${entry.ticker}`} key={flashKey} className={`num inline-block rounded px-1 ${flash}`}>
           {fmtUsd(price)}
         </span>
       </td>

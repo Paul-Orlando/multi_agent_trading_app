@@ -67,7 +67,7 @@ export function MainChart({ ticker, points, openPrice }: MainChartProps) {
       }
       bodyClassName="relative"
     >
-      <div ref={containerRef} className="absolute inset-0" />
+      <div ref={containerRef} className="absolute inset-0" data-testid="main-chart" />
       {(!ticker || points.length < 2) && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-muted">
           {ticker ? "Waiting for price data…" : "Select a ticker from the watchlist"}

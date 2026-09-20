@@ -32,17 +32,24 @@ export function Header({ portfolio, status, mock, chatOpen, onToggleChat }: Head
       </div>
 
       <dl className="flex items-center gap-8">
-        <Stat label="Portfolio value" value={fmtUsd(portfolio?.total_value)} big />
+        <Stat testId="header-total" label="Portfolio value" value={fmtUsd(portfolio?.total_value)} big />
         <Stat
+          testId="header-pnl"
           label="Total P&L"
           value={portfolio ? `${fmtSignedUsd(portfolio.total_pnl)} (${fmtPct(pnlPct)})` : "—"}
           className={signClass(portfolio?.total_pnl)}
         />
-        <Stat label="Cash" value={fmtUsd(portfolio?.cash_balance)} />
+        <Stat testId="header-cash" label="Cash" value={fmtUsd(portfolio?.cash_balance)} />
       </dl>
 
       <div className="ml-auto flex items-center gap-4">
-        <div className="flex items-center gap-2" title={`Price stream: ${s.label}`} role="status">
+        <div
+          className="flex items-center gap-2"
+          title={`Price stream: ${s.label}`}
+          role="status"
+          data-testid="connection-status"
+          data-status={status}
+        >
           <span className={`h-2.5 w-2.5 rounded-full ${s.dot} ${s.pulse ? "pulse-dot" : ""}`} />
           <span className="text-[11px] uppercase tracking-wider text-muted">{s.label}</span>
         </div>
@@ -58,11 +65,23 @@ export function Header({ portfolio, status, mock, chatOpen, onToggleChat }: Head
   );
 }
 
-function Stat({ label, value, big, className = "" }: { label: string; value: string; big?: boolean; className?: string }) {
+function Stat({
+  label,
+  value,
+  testId,
+  big,
+  className = "",
+}: {
+  label: string;
+  value: string;
+  testId: string;
+  big?: boolean;
+  className?: string;
+}) {
   return (
     <div>
       <dt className="text-[10px] uppercase tracking-wider text-muted">{label}</dt>
-      <dd className={`num ${big ? "text-xl font-semibold text-white" : "text-sm"} ${className}`}>{value}</dd>
+      <dd data-testid={testId} className={`num ${big ? "text-xl font-semibold text-white" : "text-sm"} ${className}`}>{value}</dd>
     </div>
   );
 }
