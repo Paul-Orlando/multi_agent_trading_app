@@ -4,6 +4,7 @@
 #
 # Build:  docker build -t finally .
 # Run:    docker run -v finally-data:/app/db -p 8000:8000 --env-file .env finally
+# Railway: see deploy/RAILWAY.md (the app listens on Railway's $PORT automatically).
 
 # ---------------------------------------------------------------------------
 # Stage 1: build the frontend (static export)
@@ -62,10 +63,15 @@ RUN useradd --create-home --uid 10001 finally \
     && chown -R finally:finally /app/db
 USER finally
 
-VOLUME /app/db
+# No VOLUME instruction: Railway rejects Dockerfiles that contain one. It is not needed here,
+# because docker run / compose mount a named volume at /app/db explicitly, and Docker copies this
+# directory's ownership into a fresh named volume. On Railway, attach a Railway volume at /app/db.
 EXPOSE 8000
 
+# Listen on $PORT when the platform provides it (Railway injects one at runtime and ignores
+# EXPOSE); default to 8000 for docker run / compose. The health check follows the same port.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health', timeout=3)"
+    CMD python -c "import os, urllib.request; urllib.request.urlopen('http://localhost:%s/api/health' % os.environ.get('PORT', '8000'), timeout=3)"
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Shell form (via sh -c) so ${PORT:-8000} is expanded; exec makes uvicorn PID 1 for clean shutdown.
+CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

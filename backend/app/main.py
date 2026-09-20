@@ -41,6 +41,7 @@ from .agents.models import (
 )
 from .db import PROJECT_ROOT, Database
 from .market import MarketDataSource, PriceCache, create_market_data_source, create_stream_router
+from .ratelimit import build_limiter, install_rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +130,9 @@ def create_app(db_path: str | None = None, snapshot_interval: float = SNAPSHOT_I
             db.close()
 
     app = FastAPI(title="FinAlly", version="0.1.0", lifespan=lifespan)
+
+    # Per-IP limits on POST /api/chat and the trade endpoints (env-configurable, in-memory).
+    install_rate_limit(app, build_limiter())
 
     # Tag each request with a fresh correlation id so all agent_logs rows for it can be joined.
     @app.middleware("http")
