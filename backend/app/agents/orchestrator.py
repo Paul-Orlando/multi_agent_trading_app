@@ -216,6 +216,9 @@ class OrchestratorAgent(BaseAgent):
                         messages=messages,
                         response_format=LLMOutput,
                         reasoning_effort="low",
+                        # litellm's model map no longer lists reasoning_effort for this
+                        # model, so it must be explicitly allowed through to OpenRouter.
+                        allowed_openai_params=["reasoning_effort"],
                         extra_body=EXTRA_BODY,
                     )
                     content = resp.choices[0].message.content
