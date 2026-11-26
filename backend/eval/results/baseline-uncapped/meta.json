@@ -77,5 +77,13 @@
     62,
     63
   ],
-  "max_tokens": null
+  "max_tokens": null,
+  "retries": [
+    {
+      "at": "2026-11-26 22:58 UTC",
+      "retried": 87,
+      "recovered": 87,
+      "delay_s": 0.0
+    }
+  ]
 }

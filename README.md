@@ -22,7 +22,7 @@ One FastAPI server serving everything on port 8000:
 - **Frontend**: Next.js (static export) with TypeScript and Tailwind CSS
 - **Backend**: FastAPI (Python/uv) with SSE streaming
 - **Database**: SQLite with lazy initialization
-- **AI**: LiteLLM → OpenRouter (Cerebras inference) with structured outputs
+- **AI**: LiteLLM → OpenRouter, `openai/gpt-oss-120b` served only by Cerebras, with structured outputs
 - **Market data**: Built-in GBM simulator (default) or Massive API (optional)
 
 ## Quick Start
@@ -60,6 +60,11 @@ The live site on Railway is built from the `Dockerfile` (see `railway.toml` and 
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key for AI chat |
 | `MASSIVE_API_KEY` | No | Massive (Polygon.io) key for real market data; omit to use simulator |
 | `LLM_MOCK` | No | `false` by default; set `true` for deterministic mock LLM responses (testing) |
+| `OPENROUTER_MODEL` | No | AI model on OpenRouter (default `openai/gpt-oss-120b`) |
+| `OPENROUTER_PROVIDER` | No | The only provider allowed to serve it, no fallbacks (default `cerebras`) |
+| `OPENROUTER_MAX_TOKENS` | No | Reply cap per AI call (default 1500) |
+| `OPENROUTER_TIMEOUT` | No | AI request timeout in seconds (default 30) |
+| `APP_URL` | No | Site address sent to OpenRouter as the app label (default: the Railway domain) |
 | `RISK_*` | No | Risk limit overrides, e.g. `RISK_MAX_POSITION_PCT` (defaults listed in `.env.example`) |
 | `RATE_LIMIT_CHAT_PER_HOUR`, `RATE_LIMIT_TRADES_PER_HOUR` | No | Per-address usage limits (defaults 15 and 20) |
 | `MAX_WATCHLIST` | No | Maximum watchlist size (default 50) |

@@ -336,8 +336,9 @@ export const mockApi = {
       positions,
       top_concentration: positions[0] ?? null,
       herfindahl_index: positions.reduce((s, x) => s + (x.weight_pct / 100) ** 2, 0),
-      best_performer: [...positions].sort((a, b) => b.unrealized_pnl - a.unrealized_pnl)[0] ?? null,
-      worst_performer: [...positions].sort((a, b) => a.unrealized_pnl - b.unrealized_pnl)[0] ?? null,
+      // Ranked by percentage return, as the backend Analyzer does.
+      best_performer: [...positions].sort((a, b) => b.pnl_pct - a.pnl_pct)[0] ?? null,
+      worst_performer: [...positions].sort((a, b) => a.pnl_pct - b.pnl_pct)[0] ?? null,
       watchlist_movers: [],
       flags: positions.filter((x) => x.weight_pct > 25).map((x) => `${x.ticker} is ${x.weight_pct.toFixed(0)}% of the portfolio`),
     };

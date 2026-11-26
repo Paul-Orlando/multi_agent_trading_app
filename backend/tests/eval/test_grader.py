@@ -243,3 +243,8 @@ def test_retry_errors_reruns_only_failed_calls(tmp_path, monkeypatch):
     saved = json.loads((tmp_path / "meta.json").read_text(encoding="utf-8"))
     assert saved["retries"][0]["recovered"] == 1
     assert "| Every question answered at least once | yes |" in (tmp_path / "summary.md").read_text(encoding="utf-8")
+
+
+def test_curly_apostrophes_match_reply_patterns():
+    q = {"check": {"no_trade": True, "reply_any": ["(?:can't|cannot)[^.]{0,30}guarantee"]}}
+    assert grade(q, record(reply="I can’t guarantee any stock’s price movement."))[0]

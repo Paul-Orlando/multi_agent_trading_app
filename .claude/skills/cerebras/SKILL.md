@@ -24,20 +24,26 @@ Use code like these examples in order to use Cerebras.
 ```python
 from litellm import completion
 MODEL = "openrouter/openai/gpt-oss-120b"
-EXTRA_BODY = {"provider": {"order": ["cerebras"]}}
+# Cerebras only: without allow_fallbacks=False, OpenRouter may route to another provider that
+# drops later system messages. Always send max_tokens: without it OpenRouter reserves credit for
+# the model's maximum reply and can refuse the call with a 402.
+EXTRA_BODY = {"provider": {"order": ["cerebras"], "allow_fallbacks": False, "require_parameters": True}}
+MAX_TOKENS = 1500
 ```
+
+In this project, don't call the model directly: use `OrchestratorAgent.call_llm` in `backend/app/agents/orchestrator.py`, which also sets the timeout, app labels and audit logging.
 
 ### Code to call via Cerebras for a text response
 
 ```python
-response = completion(model=MODEL, messages=messages, reasoning_effort="low", extra_body=EXTRA_BODY)
+response = completion(model=MODEL, messages=messages, reasoning_effort="low", max_tokens=MAX_TOKENS, extra_body=EXTRA_BODY)
 result = response.choices[0].message.content
 ```
 
 ### Code to call via Cerebras for a Structured Outputs response
 
 ```python
-response = completion(model=MODEL, messages=messages, response_format=MyBaseModelSubclass, reasoning_effort="low", extra_body=EXTRA_BODY)
+response = completion(model=MODEL, messages=messages, response_format=MyBaseModelSubclass, reasoning_effort="low", max_tokens=MAX_TOKENS, extra_body=EXTRA_BODY)
 result = response.choices[0].message.content
 result_as_object = MyBaseModelSubclass.model_validate_json(result)
 ```

@@ -104,7 +104,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--runs", type=int, default=3, help="runs per question (default 3)")
     p.add_argument("--group", help="only this group, e.g. grounding")
     p.add_argument("--only", help="question ids, e.g. '1,5,17-20'")
-    p.add_argument("--model", help=f"model override (default {orchestrator_module.MODEL})")
+    p.add_argument("--model", help=f"model override (default {orchestrator_module.DEFAULT_MODEL})")
     p.add_argument("--label", help="results folder name under eval/results/")
     p.add_argument("--mock", action="store_true", help="use LLM_MOCK (free, no API key)")
     p.add_argument("--rescore", action="store_true",
@@ -162,8 +162,7 @@ def main(argv: list[str] | None = None) -> int:
         price = {"provider": "mock", "input_per_m": 0.0, "output_per_m": 0.0, "source": "mock LLM"}
     else:
         install_usage_capture()
-        providers = orchestrator_module.EXTRA_BODY.get("provider", {}).get("order") or [None]
-        price = fetch_price(model, providers[0])
+        price = fetch_price(model, orchestrator_module.LLMSettings.from_env().provider)
 
     cap = eval_max_tokens()
     print(f"Running {len(selected)} question(s) x {args.runs} run(s) on {model}"

@@ -111,7 +111,7 @@
      "check": {"no_fill": true, "reply_any": ["zero", "\\b0\\b", "positive", "greater than", "at least", "quantity", "how many"]}},
     {"id": 35, "group": "risk", "message": "Buy 1 ZZZZZ", "preceding": null, "requires": "none",
      "expected": "No fill; says the ticker isn't available",
-     "check": {"no_fill": true, "reply_any": ["not (?:a )?valid", "isn't (?:a )?valid", "invalid", "not (?:currently )?(?:available|recogni[sz]ed|found|listed|supported|tradable)", "isn't (?:available|recogni[sz]ed|listed|supported)", "unknown", "doesn't exist", "does not exist", "no (?:market )?price", "(?:couldn't|could not|can't|cannot) find"]}},
+     "check": {"no_fill": true, "reply_any": ["not (?:a )?valid", "isn't (?:a )?valid", "invalid", "not (?:currently )?(?:available|recogni[sz]ed|found|listed|supported|tradable)", "isn't (?:available|recogni[sz]ed|listed|supported)", "unknown", "doesn't exist", "does not exist", "no (?:market )?price", "(?:don't|do not|doesn't|does not) have (?:a |any )?(?:market )?price", "(?:couldn't|could not|can't|cannot) find"]}},
 
     {"id": 36, "group": "watchlist", "message": "Add PYPL to my watchlist", "preceding": null, "requires": "none",
      "expected": "PYPL on the watchlist",

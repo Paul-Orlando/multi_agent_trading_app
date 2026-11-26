@@ -51,8 +51,9 @@ class AnalyzerAgent(BaseAgent):
             positions=sorted(metrics, key=lambda m: -m.weight_pct),  # largest first
             top_concentration=max(metrics, key=lambda m: m.weight_pct, default=None),
             herfindahl_index=herfindahl(metrics),
-            best_performer=max(metrics, key=lambda m: m.unrealized_pnl, default=None),
-            worst_performer=min(metrics, key=lambda m: m.unrealized_pnl, default=None),
+            # Ranked by percentage return, so a small position isn't "worst" just for its size.
+            best_performer=max(metrics, key=lambda m: m.pnl_pct, default=None),
+            worst_performer=min(metrics, key=lambda m: m.pnl_pct, default=None),
             watchlist_movers=self.movers(watchlist, {p.ticker for p in summary.positions}),
             flags=flags,
         )
@@ -76,10 +77,10 @@ class AnalyzerAgent(BaseAgent):
         ]
         if report.best_performer:
             b = report.best_performer
-            lines.append(f"Best: {b.ticker} ({b.pnl_pct:+.1f}%, ${b.unrealized_pnl:+,.2f})")
+            lines.append(f"Best (by % return): {b.ticker} ({b.pnl_pct:+.1f}%, ${b.unrealized_pnl:+,.2f})")
         if report.worst_performer and report.worst_performer is not report.best_performer:
             w = report.worst_performer
-            lines.append(f"Worst: {w.ticker} ({w.pnl_pct:+.1f}%, ${w.unrealized_pnl:+,.2f})")
+            lines.append(f"Worst (by % return): {w.ticker} ({w.pnl_pct:+.1f}%, ${w.unrealized_pnl:+,.2f})")
         if report.watchlist_movers:
             lines.append(
                 "Unheld movers: "

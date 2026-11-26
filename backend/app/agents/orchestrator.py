@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import re
+from dataclasses import dataclass
 
 from pydantic import ValidationError
 
@@ -28,9 +29,17 @@ from .watchlist import WatchlistAgent
 
 logger = logging.getLogger(__name__)
 
-# Model + provider routing per the cerebras skill: gpt-oss-120b via OpenRouter, served by Cerebras.
-MODEL = "openrouter/openai/gpt-oss-120b"
-EXTRA_BODY = {"provider": {"order": ["cerebras"]}}
+# AI call defaults: gpt-oss-120b via OpenRouter, served only by Cerebras. Each can be overridden
+# with an OPENROUTER_* env var (see LLMSettings). Changing any of them needs an evaluation run.
+DEFAULT_MODEL = "openai/gpt-oss-120b"
+DEFAULT_PROVIDER = "cerebras"
+# Reply cap. Without one, OpenRouter reserves credit for the model's maximum reply (~117k tokens)
+# and refuses the call with a 402 when the balance can't cover that reservation.
+DEFAULT_MAX_TOKENS = 1500
+DEFAULT_TIMEOUT_SECONDS = 30.0
+APP_TITLE = "Copperline"
+# What visitors see when the AI can't be reached. Details go to the audit log only.
+AI_UNAVAILABLE_MESSAGE = "The AI is unavailable right now; nothing was traded."
 
 # How many past user/assistant exchanges are replayed into the prompt.
 HISTORY_EXCHANGES = 10
@@ -62,6 +71,50 @@ succeeded with certainty; say you are placing it.
 
 class LLMError(Exception):
     """The LLM could not produce a usable response (missing key, provider error, bad output)."""
+
+
+def _env_number(name: str, default: float, cast=float):
+    try:
+        value = cast(os.environ.get(name, "") or default)
+    except ValueError:
+        return default
+    return value if value > 0 else default
+
+
+@dataclass(frozen=True)
+class LLMSettings:
+    """How the app calls the AI. Read from env on each call, so .env (loaded by create_app) applies."""
+
+    model: str = DEFAULT_MODEL
+    provider: str = DEFAULT_PROVIDER
+    max_tokens: int = DEFAULT_MAX_TOKENS
+    timeout: float = DEFAULT_TIMEOUT_SECONDS
+    app_url: str = "http://localhost:8000"
+
+    @classmethod
+    def from_env(cls) -> LLMSettings:
+        railway = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip()
+        return cls(
+            model=os.environ.get("OPENROUTER_MODEL", "").strip() or DEFAULT_MODEL,
+            provider=os.environ.get("OPENROUTER_PROVIDER", "").strip() or DEFAULT_PROVIDER,
+            max_tokens=_env_number("OPENROUTER_MAX_TOKENS", DEFAULT_MAX_TOKENS, int),
+            timeout=_env_number("OPENROUTER_TIMEOUT", DEFAULT_TIMEOUT_SECONDS),
+            app_url=os.environ.get("APP_URL", "").strip()
+            or (f"https://{railway}" if railway else "http://localhost:8000"),
+        )
+
+    @property
+    def litellm_model(self) -> str:
+        return f"openrouter/{self.model}"
+
+    def provider_routing(self) -> dict:
+        # Only the named provider: no silent fallback to one that handles the prompt differently,
+        # and it must support every parameter sent (structured output, max_tokens, reasoning).
+        return {"order": [self.provider], "allow_fallbacks": False, "require_parameters": True}
+
+    def headers(self) -> dict:
+        # App attribution, so OpenRouter's Activity page shows which app made each call.
+        return {"HTTP-Referer": self.app_url, "X-Title": APP_TITLE}
 
 
 class OrchestratorAgent(BaseAgent):
@@ -99,10 +152,8 @@ class OrchestratorAgent(BaseAgent):
                 llm = await self.call_llm(messages, text)
             except LLMError as e:
                 # Fail safe: nothing is executed, and the failed turn is still stored in history.
-                response = ChatResponse(
-                    message=f"Sorry, I couldn't get a response from the AI model ({e}). "
-                    "No trades or watchlist changes were made."
-                )
+                # The visitor gets a plain message; the error details go to the audit log only.
+                response = ChatResponse(message=AI_UNAVAILABLE_MESSAGE)
                 self.log("handle_message", "error", input=text, error=str(e), duration_ms=elapsed())
                 self.persist(text, response)
                 return response
@@ -189,22 +240,26 @@ class OrchestratorAgent(BaseAgent):
             f"Watchlist: {wl or '(empty)'}\n"
             f"Analysis:\n{analysis}"
         )
-        # Two system messages: static behavior rules, then the live per-turn context.
+        # One system message: the rules, then the live per-turn context. Some providers keep only
+        # the first system message, which once left the model without the portfolio data.
         return [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "system", "content": context},
+            {"role": "system", "content": f"{SYSTEM_PROMPT}\n\n{context}"},
             *history,
             {"role": "user", "content": text},
         ]
 
     async def call_llm(self, messages: list[dict], user_text: str = "") -> LLMOutput:
-        """One structured-output call; a malformed response is retried once."""
+        """One structured-output call; a malformed response is retried once. Nothing else is retried."""
         # LLM_MOCK=true short-circuits the network call (tests, demos, CI).
         if os.environ.get("LLM_MOCK", "").strip().lower() == "true":
             return mock_llm(user_text)
         if not os.environ.get("OPENROUTER_API_KEY"):
+            self.log("llm_call", "error", error="OPENROUTER_API_KEY is not set")
             raise LLMError("OPENROUTER_API_KEY is not set")
 
+        settings = LLMSettings.from_env()
+        # Use litellm's bundled price list instead of downloading one from GitHub at import.
+        os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
         from litellm import acompletion  # imported lazily: heavy import, unused in mock mode
 
         last_error = "unknown error"
@@ -212,31 +267,48 @@ class OrchestratorAgent(BaseAgent):
             with self.timed() as elapsed:
                 try:
                     resp = await acompletion(
-                        model=MODEL,
+                        model=settings.litellm_model,
                         messages=messages,
                         response_format=LLMOutput,
                         reasoning_effort="low",
-                        # litellm's model map no longer lists reasoning_effort for this
-                        # model, so it must be explicitly allowed through to OpenRouter.
+                        # Still needed: with litellm's downloaded price list (used whenever litellm
+                        # was imported before the env var above is set) it rejects reasoning_effort
+                        # for this model and sends nothing. Checked against litellm 1.101.
                         allowed_openai_params=["reasoning_effort"],
-                        extra_body=EXTRA_BODY,
+                        max_tokens=settings.max_tokens,
+                        timeout=settings.timeout,
+                        # No automatic retries (litellm or the OpenAI client underneath).
+                        num_retries=0,
+                        max_retries=0,
+                        extra_headers=settings.headers(),
+                        extra_body={"provider": settings.provider_routing()},
                     )
                     content = resp.choices[0].message.content
                     # Structured output: parse and validate the JSON against the LLMOutput schema.
                     out = LLMOutput.model_validate_json(content)
                 except (ValidationError, ValueError, TypeError) as e:
-                    # Bad JSON / schema mismatch: worth one retry.
+                    # Bad JSON / schema mismatch (or a reply cut off by the cap): worth one retry.
                     last_error = f"malformed model output: {e.__class__.__name__}"
                     self.log("llm_call", "error", error=f"attempt {attempt}: {e}", duration_ms=elapsed())
                     continue
-                except Exception as e:  # noqa: BLE001 - network/auth/provider errors
-                    # Not retried: auth/network problems will not fix themselves within a request.
-                    self.log("llm_call", "error", error=f"attempt {attempt}: {e}", duration_ms=elapsed())
+                except Exception as e:  # noqa: BLE001 - network/auth/provider errors, 402, 429, timeouts
+                    # Not retried: credit, rate and provider problems won't clear within a request.
+                    status = getattr(e, "status_code", None)
+                    self.log(
+                        "llm_call",
+                        "error",
+                        error=f"attempt {attempt}: status {status}: {e}",
+                        duration_ms=elapsed(),
+                    )
                     raise LLMError(e.__class__.__name__) from e
                 self.log(
                     "llm_call",
                     "success",
-                    output={"trades": len(out.trades), "watchlist_changes": len(out.watchlist_changes)},
+                    output={
+                        "trades": len(out.trades),
+                        "watchlist_changes": len(out.watchlist_changes),
+                        **call_usage(resp),
+                    },
                     duration_ms=elapsed(),
                 )
                 return out
@@ -276,6 +348,21 @@ class OrchestratorAgent(BaseAgent):
                 now_iso(),
             ),
         )
+
+
+def call_usage(resp) -> dict:
+    """Serving provider, model, token counts and cost for the audit log (from OpenRouter's reply)."""
+    usage = getattr(resp, "usage", None)
+    cost = getattr(usage, "cost", None)
+    if cost is None:
+        cost = (getattr(resp, "_hidden_params", None) or {}).get("response_cost")
+    return {
+        "provider": getattr(resp, "provider", None),
+        "model": getattr(resp, "model", None),
+        "prompt_tokens": getattr(usage, "prompt_tokens", None),
+        "completion_tokens": getattr(usage, "completion_tokens", None),
+        "cost_usd": cost,
+    }
 
 
 # ---------------------------------------------------------------------- mock LLM

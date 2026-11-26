@@ -37,9 +37,8 @@ def install_usage_capture() -> None:
     original = litellm.acompletion
 
     async def acompletion_with_usage(*args, **kwargs):
-        # Eval-only reply cap (unset by default). OpenRouter reserves credit per request for the
-        # longest possible reply; without a cap that reservation can trigger its 402
-        # "in-flight budget" error. The app itself never sets max_tokens.
+        # Eval-only reply cap (unset by default). Since step 3a the app sends its own cap
+        # (OPENROUTER_MAX_TOKENS), which this never overrides; it only mattered for the baseline.
         cap = eval_max_tokens()
         if cap:
             kwargs.setdefault("max_tokens", cap)
@@ -67,10 +66,10 @@ def _mask(text: str) -> str:
 
 
 def set_model(model: str | None) -> str:
-    """Point the orchestrator at another model for this process; returns the model in use."""
+    """Point the app at another model for this process (via OPENROUTER_MODEL); returns the model."""
     if model:
-        orchestrator_module.MODEL = model
-    return orchestrator_module.MODEL
+        os.environ["OPENROUTER_MODEL"] = model.removeprefix("openrouter/")
+    return orchestrator_module.LLMSettings.from_env().model
 
 
 async def run_question(question: dict, run: int) -> dict:
@@ -99,8 +98,12 @@ async def run_question(question: dict, run: int) -> dict:
         _usage.reset(token)
 
     llm = seen.get("llm")
-    # Everything the model was given except the static rules prompt: live context, history, message.
-    context = "\n".join(m["content"] for m in seen.get("messages", [])[1:])
+    # Everything the model was given except the static rules text: live context, history, message.
+    # (The rules and the context share one system message since step 3a; before, they were two.)
+    rules = orchestrator_module.SYSTEM_PROMPT
+    context = "\n".join(
+        m["content"].replace(rules, "", 1).strip() for m in seen.get("messages", [])
+    ).strip()
     model_message = llm.message if llm else ""
     llm_error = None
     if llm is None:
@@ -115,7 +118,7 @@ async def run_question(question: dict, run: int) -> dict:
         "question_id": question["id"],
         "group": question["group"],
         "run": run,
-        "model": orchestrator_module.MODEL,
+        "model": orchestrator_module.LLMSettings.from_env().model,
         "message": question["message"],
         "context": context,
         "model_message": model_message,

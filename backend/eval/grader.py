@@ -124,11 +124,19 @@ def _fmt_trade(t: dict) -> str:
     return f"{t['side']} {float(t['quantity']):g} {t['ticker']}"
 
 
+# Models often write typographic quotes ("can’t"); the reply patterns use plain ones.
+_QUOTES = str.maketrans({"‘": "'", "’": "'", "“": '"', "”": '"'})
+
+
+def normalize_quotes(text: str) -> str:
+    return (text or "").translate(_QUOTES)
+
+
 def grade(question: dict, record: dict) -> tuple[bool, list[str]]:
     """Return (passed, reasons for failure)."""
     check = question["check"]
     reasons: list[str] = []
-    reply = record.get("reply") or ""
+    reply = normalize_quotes(record.get("reply"))
     requested = record.get("requested_trades") or []
     fills = record.get("fills") or []
     watchlist = record.get("watchlist_after") or []

@@ -17,6 +17,11 @@ Each rule applies as soon as the feature it covers is built. Never remove, bypas
 - **Usage limits.** Usage limits are counted on the server and are never switched off on the live site.
 - **AI errors.** AI error details are logged, never shown to visitors.
 
+## The AI call
+
+- Model `openai/gpt-oss-120b` on OpenRouter, served only by Cerebras: no fallbacks, `require_parameters` on. It uses one system message (the rules plus the live portfolio context), a reply cap (1500 tokens) and a 30-second timeout, with no automatic retries except one for malformed JSON. Settings: `OPENROUTER_MODEL`, `OPENROUTER_PROVIDER`, `OPENROUTER_MAX_TOKENS`, `OPENROUTER_TIMEOUT` (see `backend/app/agents/orchestrator.py`).
+- Any change to the AI call, model, provider or prompt needs an evaluation run (`backend/eval/README.md`), compared with the last results in `backend/eval/results/`.
+
 ## Before saying a change is done
 
 Run both, and make sure both pass:
