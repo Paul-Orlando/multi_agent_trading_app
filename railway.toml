@@ -1,20 +1,15 @@
 # Railway config as code for Copperline. Railway reads this file from the repo root.
 # Docs: https://docs.railway.com/reference/config-as-code
-# Tool versions (Node 20, Python 3.12) are declared in railpack.json.
+#
+# The build itself is defined in railpack.json: tool versions (Node 20, Python 3.12), the
+# "backend" and "frontend" build steps, and which of their outputs go into the deployed image
+# (Railpack's final image only keeps what its deploy inputs select).
 #
 # Set in the Railway dashboard (this file can't): the volume mounted at /app/db, the
 # variables (OPENROUTER_API_KEY, ...) and the public domain. See deploy/RAILWAY.md.
 
 [build]
 builder = "RAILPACK"
-# 1. Backend: install uv with pip, then the locked dependencies into backend/.venv (no dev extras).
-#    Railpack ships only /app in the deployed image. Its own Python lives under /mise, so a venv
-#    built on it fails at start ("venv python -> ; exists: no"). Instead uv downloads a
-#    self-contained Python 3.12 into /app/.uv-python and builds the venv on it, copying the
-#    packages in (no links into the build cache). The build log prints the interpreter's path.
-# 2. Frontend: install exactly what package-lock.json pins, build the static export (frontend/out),
-#    and copy it to /app/static, where the backend serves it.
-buildCommand = "python -m pip install --no-cache-dir uv && cd backend && UV_PYTHON_INSTALL_DIR=/app/.uv-python UV_PYTHON_PREFERENCE=only-managed UV_LINK_MODE=copy python -m uv sync --frozen --no-dev --python 3.12 && echo \"venv python: $(readlink -f .venv/bin/python)\" && .venv/bin/python --version && cd ../frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
 
 [deploy]
 # The SQLite database lives on the Railway volume mounted at /app/db, so it survives redeploys.
