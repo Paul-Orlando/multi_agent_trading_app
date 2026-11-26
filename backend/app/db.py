@@ -14,7 +14,7 @@ from typing import Any
 # backend/app/db.py -> parents[2] is the project root (where .env, db/ and static/ live).
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = Path(__file__).resolve().parents[1] / "db" / "schema.sql"
-# Runtime database: <project root>/db/finally.db (the Docker volume mount target).
+# Runtime database: <project root>/db/finally.db (on Railway, the volume mounted at /app/db).
 DEFAULT_DB_PATH = PROJECT_ROOT / "db" / "finally.db"
 
 

@@ -206,6 +206,9 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# FinAlly runtime database (volume-mounted; only the directory is tracked)
+# Runtime database (the Railway volume in production; only the directory is tracked)
 db/*
 !db/.gitkeep
+
+# Built frontend copied here by the Railway build command (served by the backend)
+/static/

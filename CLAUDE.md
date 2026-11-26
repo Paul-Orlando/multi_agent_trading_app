@@ -1,7 +1,7 @@
 # Copperline (formerly FinAlly)
 
 A demo-only AI trading workstation: simulated prices, virtual money and a fictional company — not a real trading or advice service.
-Stack: FastAPI backend in `backend/`, Next.js static-export frontend in `frontend/`, SQLite, LiteLLM via OpenRouter, deployed on Railway.
+Stack: FastAPI backend in `backend/`, Next.js static-export frontend in `frontend/`, SQLite, LiteLLM via OpenRouter, deployed on Railway with Railpack (`railway.toml`, `railpack.json`). Run locally with uv (backend) and npm (frontend).
 
 The redesign plan is in `docs/REDESIGN_PLAN.md`. Earlier planning docs (the original FinAlly plan and market data design) are in `docs/history/` — consult them only when needed. Backend developer notes are in `backend/CLAUDE.md`.
 

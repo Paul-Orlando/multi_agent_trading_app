@@ -51,7 +51,7 @@ FINALLY_STATIC_DIR=../frontend/out uv run uvicorn app.main:app --port 8000
 
 For frontend development with hot reload, run the backend as above and `npm run dev` in `frontend/` (http://localhost:3000, which proxies `/api` to port 8000).
 
-The live site on Railway is built from the `Dockerfile` (see `railway.toml` and `deploy/RAILWAY.md`).
+The live site runs on Railway, built with Railpack (see `railway.toml`, `railpack.json` and `deploy/RAILWAY.md`).
 
 ## Environment Variables
 
@@ -77,8 +77,8 @@ finally/
 ├── backend/     # FastAPI uv project
 ├── docs/        # Redesign plan; earlier planning docs in docs/history/
 ├── test/        # Playwright E2E tests
-├── db/          # SQLite volume mount (runtime)
-└── scripts/     # Start/stop helpers
+├── deploy/      # Railway deployment guide
+└── db/          # SQLite database (runtime; the Railway volume in production)
 ```
 
 ## License
