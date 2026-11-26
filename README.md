@@ -17,7 +17,7 @@ An AI-powered trading workstation that streams live market data, simulates portf
 
 ## Architecture
 
-Single Docker container serving everything on port 8000:
+One FastAPI server serving everything on port 8000:
 
 - **Frontend**: Next.js (static export) with TypeScript and Tailwind CSS
 - **Backend**: FastAPI (Python/uv) with SSE streaming
@@ -27,17 +27,31 @@ Single Docker container serving everything on port 8000:
 
 ## Quick Start
 
-```bash
-# Clone and configure
-cp .env.example .env
-# Add your OPENROUTER_API_KEY to .env
+Needs Python 3.12 with [uv](https://docs.astral.sh/uv/) and Node 20.
 
-# Run with Docker
-docker build -t finally .
-docker run -v finally-data:/app/db -p 8000:8000 --env-file .env finally
+```bash
+# Configure
+cp .env.example .env
+# Set OPENROUTER_API_KEY in .env (or set LLM_MOCK=true to try it without a key)
+
+# Build the frontend (static export to frontend/out)
+cd frontend
+npm ci
+npm run build
+cd ..
+
+# Run the backend, which serves the API and the built frontend on port 8000
+cd backend
+uv sync
+FINALLY_STATIC_DIR=../frontend/out uv run uvicorn app.main:app --port 8000
+# PowerShell: $env:FINALLY_STATIC_DIR="../frontend/out"; uv run uvicorn app.main:app --port 8000
 
 # Open http://localhost:8000
 ```
+
+For frontend development with hot reload, run the backend as above and `npm run dev` in `frontend/` (http://localhost:3000, which proxies `/api` to port 8000).
+
+The live site on Railway is built from the `Dockerfile` (see `railway.toml` and `deploy/RAILWAY.md`).
 
 ## Environment Variables
 
@@ -45,7 +59,10 @@ docker run -v finally-data:/app/db -p 8000:8000 --env-file .env finally
 |---|---|---|
 | `OPENROUTER_API_KEY` | Yes | OpenRouter API key for AI chat |
 | `MASSIVE_API_KEY` | No | Massive (Polygon.io) key for real market data; omit to use simulator |
-| `LLM_MOCK` | No | Set `true` for deterministic mock LLM responses (testing) |
+| `LLM_MOCK` | No | `false` by default; set `true` for deterministic mock LLM responses (testing) |
+| `RISK_*` | No | Risk limit overrides, e.g. `RISK_MAX_POSITION_PCT` (defaults listed in `.env.example`) |
+| `RATE_LIMIT_CHAT_PER_HOUR`, `RATE_LIMIT_TRADES_PER_HOUR` | No | Per-address usage limits (defaults 15 and 20) |
+| `MAX_WATCHLIST` | No | Maximum watchlist size (default 50) |
 
 ## Project Structure
 
