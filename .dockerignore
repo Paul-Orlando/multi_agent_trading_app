@@ -31,7 +31,7 @@ frontend/out
 **/.coverage
 
 # Not needed at runtime
-planning
+docs
 backend/tests
 backend/market_data_demo.py
 test

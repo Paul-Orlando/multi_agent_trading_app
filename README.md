@@ -1,8 +1,10 @@
 # FinAlly — AI Trading Workstation
 
-A visually stunning AI-powered trading workstation that streams live market data, simulates portfolio trading, and integrates an LLM chat assistant that can analyze positions and execute trades via natural language.
+[![Tests](https://github.com/Paul-Orlando/multi_agent_trading_app/actions/workflows/tests.yml/badge.svg)](https://github.com/Paul-Orlando/multi_agent_trading_app/actions/workflows/tests.yml)
 
-Built entirely by coding agents as a capstone project for an agentic AI coding course.
+> **Demo only.** Simulated prices and virtual money. Nothing here is investment advice.
+
+An AI-powered trading workstation that streams live market data, simulates portfolio trading, and integrates an LLM chat assistant that can analyze positions and execute trades via natural language.
 
 ## Features
 
@@ -51,7 +53,7 @@ docker run -v finally-data:/app/db -p 8000:8000 --env-file .env finally
 finally/
 ├── frontend/    # Next.js static export
 ├── backend/     # FastAPI uv project
-├── planning/    # Project documentation and agent contracts
+├── docs/        # Redesign plan; earlier planning docs in docs/history/
 ├── test/        # Playwright E2E tests
 ├── db/          # SQLite volume mount (runtime)
 └── scripts/     # Start/stop helpers
@@ -60,3 +62,7 @@ finally/
 ## License
 
 See [LICENSE](LICENSE).
+
+## Credits
+
+Started from the FinAlly course project by Ed Donner (MIT licence); redesigned and extended by Paul Orlando.

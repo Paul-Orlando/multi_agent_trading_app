@@ -1,4 +1,4 @@
--- FinAlly SQLite schema (multi-agent design; see planning/AGENT_ARCHITECTURE.md)
+-- FinAlly SQLite schema (multi-agent design; see docs/history/AGENT_ARCHITECTURE.md)
 -- Applied lazily on first request: every statement is idempotent (IF NOT EXISTS / OR IGNORE).
 -- Conventions: ids are UUID text; timestamps are ISO-8601 UTC text; user_id defaults to 'default'
 -- (single-user today, multi-user-ready). Fractional shares are supported.

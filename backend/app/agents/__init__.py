@@ -1,4 +1,4 @@
-"""Multi-agent trading system. See planning/AGENT_ARCHITECTURE.md."""
+"""Multi-agent trading system. See docs/history/AGENT_ARCHITECTURE.md."""
 
 from .analyzer import AnalyzerAgent
 from .orchestrator import OrchestratorAgent
