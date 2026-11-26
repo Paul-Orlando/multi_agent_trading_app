@@ -7,14 +7,17 @@
 
 [build]
 builder = "RAILPACK"
-# 1. Backend: install uv with pip, then the locked dependencies into backend/.venv (no dev extras).
+# 1. Backend: install uv with pip, then the locked dependencies into backend/.venv (no dev extras),
+#    built on Railpack's Python 3.12 (railpack.json); uv must never download its own Python.
+#    The last backend step prints the venv interpreter's real path and version to the build log.
 # 2. Frontend: install exactly what package-lock.json pins, build the static export (frontend/out),
 #    and copy it to /app/static, where the backend serves it.
-buildCommand = "python -m pip install --no-cache-dir uv && cd backend && python -m uv sync --frozen --no-dev && cd ../frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
+buildCommand = "python -m pip install --no-cache-dir uv && cd backend && UV_PYTHON_DOWNLOADS=never python -m uv sync --frozen --no-dev --python python3.12 && echo \"venv python: $(readlink -f .venv/bin/python)\" && .venv/bin/python --version && cd ../frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
 
 [deploy]
 # The SQLite database lives on the Railway volume mounted at /app/db, so it survives redeploys.
-startCommand = "cd backend && FINALLY_DB_PATH=/app/db/finally.db .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+# It first prints where the venv's interpreter points and whether that file exists in this image.
+startCommand = "cd backend && echo \"venv python -> $(readlink -f .venv/bin/python); exists: $(test -e \"$(readlink -f .venv/bin/python)\" && echo yes || echo no)\" && FINALLY_DB_PATH=/app/db/finally.db exec .venv/bin/python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
 # Railway marks a deploy healthy once this returns 200, then routes traffic to it.
 healthcheckPath = "/api/health"
 healthcheckTimeout = 60
