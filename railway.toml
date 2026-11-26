@@ -7,12 +7,14 @@
 
 [build]
 builder = "RAILPACK"
-# 1. Backend: install uv with pip, then the locked dependencies into backend/.venv (no dev extras),
-#    built on Railpack's Python 3.12 (railpack.json); uv must never download its own Python.
-#    The last backend step prints the venv interpreter's real path and version to the build log.
+# 1. Backend: install uv with pip, then the locked dependencies into backend/.venv (no dev extras).
+#    Railpack ships only /app in the deployed image. Its own Python lives under /mise, so a venv
+#    built on it fails at start ("venv python -> ; exists: no"). Instead uv downloads a
+#    self-contained Python 3.12 into /app/.uv-python and builds the venv on it, copying the
+#    packages in (no links into the build cache). The build log prints the interpreter's path.
 # 2. Frontend: install exactly what package-lock.json pins, build the static export (frontend/out),
 #    and copy it to /app/static, where the backend serves it.
-buildCommand = "python -m pip install --no-cache-dir uv && cd backend && UV_PYTHON_DOWNLOADS=never python -m uv sync --frozen --no-dev --python python3.12 && echo \"venv python: $(readlink -f .venv/bin/python)\" && .venv/bin/python --version && cd ../frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
+buildCommand = "python -m pip install --no-cache-dir uv && cd backend && UV_PYTHON_INSTALL_DIR=/app/.uv-python UV_PYTHON_PREFERENCE=only-managed UV_LINK_MODE=copy python -m uv sync --frozen --no-dev --python 3.12 && echo \"venv python: $(readlink -f .venv/bin/python)\" && .venv/bin/python --version && cd ../frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
 
 [deploy]
 # The SQLite database lives on the Railway volume mounted at /app/db, so it survives redeploys.

@@ -9,7 +9,7 @@ health check) and `railpack.json` (Node 20 and Python 3.12). You get a public
 | Step | What runs |
 |---|---|
 | Tools | Railpack installs Node 20 and Python 3.12 (`railpack.json`) |
-| Build | `python -m pip install uv`, then `uv sync --frozen --no-dev --python python3.12` in `backend/` with downloads off (creates `backend/.venv` on Railpack's Python, and logs the interpreter path); `npm ci` and `npm run build` in `frontend/` (static export to `frontend/out`), copied to `/app/static`, where the backend serves it |
+| Build | `python -m pip install uv`, then `uv sync --frozen --no-dev` in `backend/`, which downloads a self-contained Python 3.12 into `/app/.uv-python` and builds `backend/.venv` on it (Railpack ships only `/app`; its own Python under `/mise` isn't in the deployed image), and logs the interpreter path; `npm ci` and `npm run build` in `frontend/` (static export to `frontend/out`), copied to `/app/static`, where the backend serves it |
 | Start | `.venv/bin/python -m uvicorn app.main:app` from `backend/` (after logging where the venv's interpreter points), on Railway's `$PORT`, with `FINALLY_DB_PATH=/app/db/finally.db` |
 | Health check | Railway waits for `GET /api/health` to return 200 before routing traffic |
 
@@ -80,7 +80,7 @@ Layer 1 stops casual abuse and keeps normal use smooth; layer 2 bounds the worst
 | "Application failed to respond" / 502 | The app is not on `$PORT`, or the health check failed; read the deploy logs |
 | Build fails at `npm ci` or `uv sync` | A lockfile is out of date: run `npm install` in `frontend/` or `uv lock` in `backend/` and commit the lockfile |
 | Build fails with "no provider" or a missing `python`/`node` | `railpack.json` is missing from the repo root, or the builder isn't Railpack |
-| Logs show `cannot execute: required file not found`, or the start line says `exists: no` | The venv's interpreter isn't in the deployed image. Check the `venv python:` line in the build log against the start line |
+| Logs show `cannot execute: required file not found`, or the start line says `exists: no` | The venv's interpreter isn't in the deployed image: it must be under `/app`. The build command has to keep `UV_PYTHON_INSTALL_DIR=/app/.uv-python UV_PYTHON_PREFERENCE=only-managed`. Compare the `venv python:` line in the build log with the start line |
 | Logs show `unable to open database file` | The volume is not mounted at `/app/db` |
 | Chat replies "AuthenticationError" | `OPENROUTER_API_KEY` is missing or invalid in Railway variables |
 | Data resets after every deploy | The volume is not attached, or is mounted at a different path |
