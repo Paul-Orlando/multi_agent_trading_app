@@ -9,9 +9,9 @@ command and health check; `railpack.json` defines the build. You get a public
 | Step (`railpack.json`) | What runs |
 |---|---|
 | Tools | Railpack installs Node 20 and Python 3.12 |
-| `backend` | `python -m pip install uv`, then `uv sync --frozen --no-dev` in `backend/`. uv downloads a self-contained Python 3.12 into `/app/.uv-python` and builds `backend/.venv` on it, copying the packages in. The build log prints the venv interpreter's path. |
+| `backend` | `python -m pip install uv`, then `uv sync --frozen --no-dev` in `backend/`. That builds `backend/.venv` on Railpack's own Python 3.12 (under `/mise`, which the auto-generated deploy inputs keep), with downloads off and the packages copied in. The build log prints the venv interpreter's path. |
 | `frontend` | `npm ci` and `npm run build` in `frontend/` (static export), copied to `/app/static`, where the backend serves it |
-| Deploy inputs | Railpack's final image only keeps what `deploy.inputs` selects: the auto-generated inputs (`"..."`) plus `backend/` (code and `.venv`) and `.uv-python` from the backend step, and `static/` from the frontend step |
+| Deploy inputs | Railpack's final image only keeps what `deploy.inputs` selects: the auto-generated inputs (`"..."`) (which include Railpack's Python under `/mise`) plus `backend/` (code and `.venv`) from the backend step, and `static/` from the frontend step |
 | Start (`railway.toml`) | Logs where the venv's interpreter points, then `.venv/bin/python -m uvicorn app.main:app` from `backend/` on Railway's `$PORT`, with `FINALLY_DB_PATH=/app/db/finally.db` |
 | Health check | Railway waits for `GET /api/health` to return 200 before routing traffic |
 
@@ -82,7 +82,7 @@ Layer 1 stops casual abuse and keeps normal use smooth; layer 2 bounds the worst
 | "Application failed to respond" / 502 | The app is not on `$PORT`, or the health check failed; read the deploy logs |
 | Build fails in the `backend` or `frontend` step (`uv sync` or `npm ci`) | A lockfile is out of date: run `npm install` in `frontend/` or `uv lock` in `backend/` and commit the lockfile |
 | Build fails with "no provider" or a missing `python`/`node` | `railpack.json` is missing from the repo root, or the builder isn't Railpack |
-| Logs show `No such file or directory` for `.venv/bin/python`, or the start line says `exists: no` | The venv or its interpreter isn't in the deployed image. The final image only keeps what `deploy.inputs` in `railpack.json` selects (`backend`, `.uv-python`, `static`). Compare the `venv python:` line in the build log with the start line |
+| Logs show `No such file or directory` for `.venv/bin/python`, or the start line says `exists: no` | The venv or its interpreter isn't in the deployed image. The final image only keeps what `deploy.inputs` in `railpack.json` selects (`...`, `backend`, `static`). Compare the `venv python:` line in the build log with the start line |
 | Logs show `unable to open database file` | The volume is not mounted at `/app/db` |
 | Chat replies "AuthenticationError" | `OPENROUTER_API_KEY` is missing or invalid in Railway variables |
 | Data resets after every deploy | The volume is not attached, or is mounted at a different path |

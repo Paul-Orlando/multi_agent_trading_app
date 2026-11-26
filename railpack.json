@@ -7,19 +7,33 @@
   "steps": {
     "backend": {
       "inputs": [
-        { "step": "packages:mise" },
-        { "local": true, "include": ["."] }
+        {
+          "step": "packages:mise"
+        },
+        {
+          "local": true,
+          "include": [
+            "."
+          ]
+        }
       ],
       "commands": [
         "python -m pip install --no-cache-dir uv",
-        "cd backend && UV_PYTHON_INSTALL_DIR=/app/.uv-python UV_PYTHON_PREFERENCE=only-managed UV_LINK_MODE=copy python -m uv sync --frozen --no-dev --python 3.12",
+        "cd backend && UV_PYTHON_PREFERENCE=only-system UV_PYTHON_DOWNLOADS=never UV_LINK_MODE=copy python -m uv sync --frozen --no-dev --python \"$(which python)\"",
         "echo \"venv python: $(readlink -f backend/.venv/bin/python)\" && backend/.venv/bin/python --version"
       ]
     },
     "frontend": {
       "inputs": [
-        { "step": "packages:mise" },
-        { "local": true, "include": ["."] }
+        {
+          "step": "packages:mise"
+        },
+        {
+          "local": true,
+          "include": [
+            "."
+          ]
+        }
       ],
       "commands": [
         "cd frontend && npm ci --no-audit --no-fund && npm run build && rm -rf ../static && cp -r out ../static"
@@ -29,8 +43,18 @@
   "deploy": {
     "inputs": [
       "...",
-      { "step": "backend", "include": ["backend", ".uv-python"] },
-      { "step": "frontend", "include": ["static"] }
+      {
+        "step": "backend",
+        "include": [
+          "backend"
+        ]
+      },
+      {
+        "step": "frontend",
+        "include": [
+          "static"
+        ]
+      }
     ]
   }
 }

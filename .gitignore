@@ -212,5 +212,3 @@ db/*
 
 # Built frontend copied here by the Railway build command (served by the backend)
 /static/
-# Python downloaded by uv during the Railway build
-/.uv-python/
