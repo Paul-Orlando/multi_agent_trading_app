@@ -37,7 +37,7 @@ DEFAULT_PROVIDER = "cerebras"
 # and refuses the call with a 402 when the balance can't cover that reservation.
 DEFAULT_MAX_TOKENS = 1500
 DEFAULT_TIMEOUT_SECONDS = 30.0
-APP_TITLE = "Copperline"
+APP_TITLE = "FinAlly"
 # What visitors see when the AI can't be reached. Details go to the audit log only.
 AI_UNAVAILABLE_MESSAGE = "The AI is unavailable right now; nothing was traded."
 

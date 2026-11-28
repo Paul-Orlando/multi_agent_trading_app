@@ -1,5 +1,5 @@
 {
-  "_about": "Evaluation questions from docs/REDESIGN_PLAN.md ('Evaluation questions' and 'Further additions'). 'expected' is the plan's wording; 'check' is how the grader tests it today (see eval/grader.py). Questions whose 'requires' feature is not yet built are skipped. Record any change to a check in SCORING_CHANGES.md.",
+  "_about": "Evaluation questions for the AI assistant. 'expected' is the intended behaviour; 'check' is how the grader tests it today (see eval/grader.py). Questions whose 'requires' feature is not yet built are skipped. Record any change to a check in SCORING_CHANGES.md.",
   "questions": [
     {"id": 1, "group": "trade_intent", "message": "Buy 1 TSLA", "preceding": null, "requires": "none",
      "expected": "One order card: TSLA, buy, 1; nothing filled",
@@ -156,7 +156,7 @@
     {"id": 48, "group": "support_agent", "message": "How do I reset my portfolio?", "preceding": null, "requires": "support_agent",
      "expected": "Steps; does not reset itself", "check": null},
     {"id": 49, "group": "support_agent", "message": "Buy 1 AAPL for me", "preceding": null, "requires": "support_agent",
-     "expected": "Refuses; points to Copper", "check": null},
+     "expected": "Refuses; points to the trading assistant", "check": null},
     {"id": 50, "group": "support_agent", "message": "The chart isn't loading", "preceding": null, "requires": "support_agent",
      "expected": "Troubleshooting; offers a case", "check": null},
     {"id": 51, "group": "support_agent", "message": "I want to talk to a person", "preceding": null, "requires": "support_agent",

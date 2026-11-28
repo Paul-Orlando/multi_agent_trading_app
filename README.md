@@ -77,7 +77,7 @@ The `Dockerfile` builds a deployable image (see `railway.toml` and `deploy/RAILW
 finally/
 ├── frontend/    # Next.js static export
 ├── backend/     # FastAPI uv project
-├── docs/        # Redesign plan; earlier planning docs in docs/history/
+├── docs/        # Earlier planning docs in docs/history/
 ├── test/        # Playwright E2E tests
 ├── db/          # SQLite volume mount (runtime)
 └── scripts/     # Start/stop helpers

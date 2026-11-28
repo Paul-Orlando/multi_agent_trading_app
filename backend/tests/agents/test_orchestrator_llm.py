@@ -110,14 +110,14 @@ async def test_reasoning_effort_is_explicitly_allowed(orchestrator, captured):
 
 
 async def test_request_carries_app_labels(orchestrator, captured, monkeypatch):
-    monkeypatch.setenv("RAILWAY_PUBLIC_DOMAIN", "copperline.example.app")
+    monkeypatch.setenv("RAILWAY_PUBLIC_DOMAIN", "finally.example.app")
     await orchestrator.call_llm([{"role": "user", "content": "hi"}], "hi")
 
     assert captured[0]["extra_headers"] == {
-        "HTTP-Referer": "https://copperline.example.app",
+        "HTTP-Referer": "https://finally.example.app",
         "X-Title": APP_TITLE,
     }
-    assert APP_TITLE == "Copperline"
+    assert APP_TITLE == "FinAlly"
 
 
 def test_settings_defaults_and_env_overrides(monkeypatch):

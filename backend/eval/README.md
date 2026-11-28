@@ -1,6 +1,6 @@
 # Evaluation harness
 
-Measures the AI assistant against the questions in `docs/REDESIGN_PLAN.md` ("Evaluation questions" and "Further additions"), graded mainly on what actually happened (trades requested and filled, watchlist afterwards) rather than wording.
+Measures the AI assistant against the questions in `questions.json`, graded mainly on what actually happened (trades requested and filled, watchlist afterwards) rather than wording.
 
 ## Running it
 

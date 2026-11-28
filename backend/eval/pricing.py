@@ -21,7 +21,7 @@ def fetch_price(model: str, preferred_provider: str | None = None, timeout: floa
     slug = openrouter_slug(model)
     url = ENDPOINTS_URL.format(slug=slug)
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "copperline-eval"})
+        req = urllib.request.Request(url, headers={"User-Agent": "finally-eval"})
         with urllib.request.urlopen(req, timeout=timeout) as r:
             endpoints = json.load(r)["data"]["endpoints"]
     except Exception as e:  # noqa: BLE001 - pricing is best effort
