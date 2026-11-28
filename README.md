@@ -1,4 +1,4 @@
-> **Retired.** FinAlly was an earlier AI trading demo and is no longer maintained or deployed. It has been replaced by **[Copperline](https://github.com/Paul-Orlando/copperline)** ([live demo](https://copperline-staging.up.railway.app)), rebuilt from scratch with a confirm-first AI harness, private portfolios and a 63-question evaluation. Copperline's README includes the lessons measured here.
+> **Retired.** FinAlly was an earlier AI trading demo and is no longer maintained or deployed.
 
 # FinAlly — AI Trading Workstation
 
