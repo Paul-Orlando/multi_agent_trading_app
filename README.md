@@ -1,3 +1,5 @@
+> **Retired.** FinAlly was an earlier AI trading demo and is no longer maintained or deployed. It has been replaced by **[Copperline](https://github.com/Paul-Orlando/copperline)** ([live demo](https://copperline-staging.up.railway.app)), rebuilt from scratch with a confirm-first AI harness, private portfolios and a 63-question evaluation. Copperline's README includes the lessons measured here.
+
 # FinAlly — AI Trading Workstation
 
 [![Tests](https://github.com/Paul-Orlando/multi_agent_trading_app/actions/workflows/tests.yml/badge.svg)](https://github.com/Paul-Orlando/multi_agent_trading_app/actions/workflows/tests.yml)
@@ -51,7 +53,7 @@ FINALLY_STATIC_DIR=../frontend/out uv run uvicorn app.main:app --port 8000
 
 For frontend development with hot reload, run the backend as above and `npm run dev` in `frontend/` (http://localhost:3000, which proxies `/api` to port 8000).
 
-The live site on Railway is built from the `Dockerfile` (see `railway.toml` and `deploy/RAILWAY.md`).
+The `Dockerfile` builds a deployable image (see `railway.toml` and `deploy/RAILWAY.md`); FinAlly itself is no longer deployed.
 
 ## Environment Variables
 
